@@ -1,5 +1,21 @@
 {
   "expo": {
+    "packagerOpts": {
+      "config": "metro.config.js",
+      "sourceExts": [
+        "expo.ts",
+        "expo.tsx",
+        "expo.js",
+        "expo.jsx",
+        "ts",
+        "tsx",
+        "js",
+        "jsx",
+        "json",
+        "wasm",
+        "svg"
+      ]
+    },
     "name": "PolessuSchedule",
     "slug": "PolessuSchedule",
     "version": "1.0.0",
@@ -18,10 +34,11 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.fatonndev.PolessuSchedule"
     },
     "android": {
-      "package": "be.fatonndev.polessu_schedule",
+      "package": "by.fatonndev.polessu_schedule",
       "userInterfaceStyle": "dark",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
@@ -34,6 +51,17 @@
     "extra": {
       "eas": {
         "projectId": "a358b63c-cf7d-4132-91ee-c380cfcbbad8"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/a358b63c-cf7d-4132-91ee-c380cfcbbad8",
+      "codeSigningCertificate": "./certs/certificate.pem",
+      "codeSigningMetadata": {
+        "keyid": "main",
+        "alg": "rsa-v1_5-sha256"
       }
     }
   }

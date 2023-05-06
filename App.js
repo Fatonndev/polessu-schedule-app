@@ -1,39 +1,263 @@
-import { useCallback } from 'react';
+import ArrowDownSvg from './assets/svg/arrow-down.svg'
+
+import React, { useRef } from 'react';
+
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View, ScrollView, Pressable } from 'react-native';
 import { useFonts } from 'expo-font';
 
+import Footer from "./src/components/Footer";
+import Schedule from "./src/components/Schedule";
+import DateSelectView from "./src/components/DateSelectView";
+
+import * as parser from "./src/utils/parser";
+import {getCurrentWeek} from "./src/utils/time";
+
+/*
+ * TODO: https://reactnative.dev/docs/refreshcontrol
+ */
+
+let i = 0;
+
+const data = [
+  {
+    from: '8:30',
+    to: '9:50',
+    color: 'rgba(76, 97, 187, 0.8)',
+
+    groups: [
+      {
+        name: '1 Группа',
+
+        subject: 'Физика',
+        type: 'Лаб.',
+        teacher: 'Минюк Ольга Николаевна',
+        auditorium: '3301'
+      },
+      {
+        name: '2 Группа',
+
+        subject: 'Облачные технологии',
+        type: 'Лаб.',
+        teacher: 'Клаченков Владислав Николаевич',
+        auditorium: '2705 (комп.)'
+      },
+    ]
+  },
+  {
+    duration: 1
+  },
+  {
+    from: '8:30',
+    to: '9:50',
+    color: 'rgba(76,187,82,0.8)',
+
+    groups: [
+      {
+        subject: 'Физика',
+        type: 'Лаб.',
+        teacher: 'Минюк Ольга Николаевна',
+        auditorium: '3301'
+      }
+    ]
+  },
+  {
+    duration: 160
+  },
+  {
+    from: '8:30',
+    to: '9:50',
+    color: 'rgba(76,187,82,0.8)',
+
+    groups: [
+      {
+        name: '',
+        subject: 'Физика',
+        type: 'Лаб.',
+        teacher: 'Минюк Ольга Николаевна',
+        auditorium: '3301'
+      }
+    ]
+  },
+  {
+    duration: 152
+  },
+  {
+    from: '8:30',
+    to: '9:50',
+    color: 'rgba(76,187,82,0.8)',
+
+    groups: [
+      {
+        name: '',
+        subject: 'Физика',
+        type: 'Лаб.',
+        teacher: 'Минюк Ольга Николаевна',
+        auditorium: '3301'
+      }
+    ]
+  },
+];
+
+const sm_start = new Date(2023, 1, 6);
+const sm_length = 19;
+const schedule = new parser.Schedule('22ИТ-2');
+
+const already = Math.floor( new Date().getTime() / (1000 * 60 * 60 * 24) - sm_start.getTime() / (1000 * 60 * 60 * 24) );
+
+let first = true;
+let day = already;
+
 export default function App() {
+  const [refreshing, setRefreshing] = React.useState(true);
+
+  const [data, setData] = React.useState([]);
+
+  const curWeek = getCurrentWeek();
+
+  const [week, setWeek] = React.useState({
+    from: curWeek.start,
+    to: curWeek.end,
+    isCurrent: true
+  });
+
+  const setDayZ = async (v) => {
+    day = v;
+    await updateData(false);
+  }
+
+  const updateData = async (update) => {
+    if (update) {
+      await schedule.updateData();
+    }
+
+    const updated = schedule.toReactFormat(Math.floor(day / 7), day % 7);
+
+    setData(updated);
+
+    //console.warn(schedule.last_polessu_update)
+  }
+
+  if (first) {
+    (async () => {
+      await updateData(true)
+      setRefreshing(false);
+    })()
+
+    first = false;
+  }
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+
+    await updateData(true);
+
+    setRefreshing(false);
+  }, []);
+
   const [fontsLoaded] = useFonts({
     'Inter-Bold': require('./assets/fonts/inter_bold.ttf'),
     'Inter-Regular': require('./assets/fonts/inter_regular.ttf'),
+    //'Inter-SemiBold': require('./assets/fonts/inter_semi_bold.ttf'),
+    'Inter-Medium': require('./assets/fonts/inter_medium.ttf'),
   });
 
   if (!fontsLoaded) {
     return null;
   }
 
+  const getViewFromGroup = (group) => {
+    return <View style={{ flexDirection: 'row'}}>
+      <View>
+        <View style={styles.subGroupLimiter} />
+      </View>
+
+      <View style={{ flexGrow: 1 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', }}>
+          <View style={styles.subGroupBar}>
+            <Text style={styles.subGroupTitle}>{ group.name }</Text>
+          </View>
+          <Text style={styles.arrowRight}>{'>'}</Text>
+        </View>
+
+        <View style={{ marginLeft: 9, marginTop: 4 }}>
+          <Text style={styles.name}>{ group.subject }</Text>
+          <Text style={styles.teacherName}>{ group.teacher }</Text>
+
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+            <View style={styles.arg}>
+              {
+                group.auditorium ? <Text style={styles.argText}> { group.auditorium } </Text> : undefined
+              }
+            </View>
+            <View style={styles.arg}>
+              <Text style={styles.argText}> { group.type } </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  }
+  const getViewFromAllGroup = (group) => {
+    return <View style={{ marginLeft: 12, marginTop: 0, flexGrow: 1 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', }}>
+        <Text style={styles.name}>{ group.subject }</Text>
+        <Text style={styles.arrowRight}>{'>'}</Text>
+      </View>
+
+      <Text style={styles.teacherName}>{ group.teacher }</Text>
+
+      <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, marginLeft: 4 }}>
+          <View style={styles.arg}>
+            {
+              group.auditorium ? <Text style={styles.argText}> { group.auditorium } </Text> : undefined
+            }
+          </View>
+          <View style={styles.arg}>
+            <Text style={styles.argText}> { group.type } </Text>
+          </View>
+        </View>
+      </View>
+
+    </View>
+  }
+
+  console.log("App render")
+
   return (
-    <View style={styles.screen}>
-      <StatusBar style="auto" />
+    <View style={{ flex: 1 }}>
+      <StatusBar style="dark" />
 
-      <Text style={{ fontFamily: 'Inter-Bold', fontSize: 29, marginTop: 30, marginBottom: 1 }}>
-        Расписание
-      </Text>
-      <Text style={{ fontFamily: 'Inter-Regular', fontSize: 14, marginBottom: 20, color: '#B8B8B8' }}>
-        13 марта - 19 марта (текущая) {'>'} 
-      </Text>
+      <ScrollView style={styles.screen}
+        ref={(ref)=>this.scroll = ref}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} progressViewOffset={30} onRefresh={onRefresh} />
+        }
+        onScroll={event => {
+          const yCur = event.nativeEvent.layoutMeasurement.height + event.nativeEvent.contentOffset.y;
 
-      <View style={styles.dateContainer}>
-        <View style={styles.dateElem}>
-          <Text>Пн</Text>
-        </View>
-      </View>
-    
-      <View style={styles.container}>
-        <View style={{ height: 200, backgroundColor: '#aa0000' }}>
-        </View>
-      </View>
+          this.arrow.setNativeProps({
+            style:{
+              opacity: Math.min((event.nativeEvent.contentSize.height - yCur) / 100, 1)
+            }
+          })
+        }}>
+        <Text style={{ fontFamily: 'Inter-Bold', fontSize: 29, marginTop: 30, marginBottom: 1, color: '#fff' }}>
+          Расписание 22ИТ-2
+        </Text>
+
+        <DateSelectView week={week} setWeek={setWeek} setDay={setDayZ} semStart={sm_start} semLength={sm_length} />
+
+        <Schedule styles={styles} data={data} getViewFromAllGroup={getViewFromAllGroup} getViewFromGroup={getViewFromGroup} />
+      </ScrollView>
+
+      <Footer />
+
+      <Pressable ref={(ref) => this.arrow = ref} onPress={()=>{ this.scroll.scrollToEnd({ animated: true }) }} style={{ position: 'absolute', bottom: 70, right: 22, backgroundColor: '#171717', padding: 12, borderRadius: 30, elevation: 1 }}>
+        <ArrowDownSvg width={16} height={16} style={{ color: '#E9E9E9' }} />
+      </Pressable>
+
     </View>
   );
 }
@@ -42,20 +266,90 @@ const styles = StyleSheet.create({
   screen: {
     padding: 22,
     height: '100%',
-    backgroundColor: '#000',
+    backgroundColor: '#000'
   },
-  dateContainer: {
-    backgroundColor: '#ffffff',
-    padding: 5
+
+  // Стрелка справа
+  arrowRight: {
+    color: '#6663FF',
+    fontFamily: 'Inter-Bold',
+    fontSize: 16,
+    marginRight: 2
   },
-  dateElem: {
-    backgroundColor: '#181818',
-    padding: 5
+
+  // Преподаватель
+  teacherName: {
+    color: '#7D7D7D',
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    marginLeft: 1
   },
-  container: {
-    // flex: 1,
-    // backgroundColor: '#fff',
-    // alignItems: 'center',
-    // justifyContent: 'center',
+  // Название предмета
+  name: {
+    color: '#fff',
+    fontFamily: 'Inter-Medium',
+    fontSize: 18,
+    textIndent: 0,
+    marginLeft: 0,
+    paddingLeft: 0,
+    backgroundColor: '#000'
   },
+
+  // Контейнер аргумента
+  arg: {
+    backgroundColor: '#151515',
+    borderRadius: 4
+  },
+  // Текст аргументов (кабинет)
+  argText: {
+    color: '#7F7CE2',
+    fontFamily: 'Inter-Regular',
+    marginLeft: 7,
+    marginRight: 7,
+    marginTop: 2,
+    marginBottom: 2
+  },
+
+  // Название подгруппы
+  subGroupTitle: {
+    color: '#8482DD',
+    padding: 3,
+    paddingRight: 8,
+    paddingLeft: 4,
+    fontFamily: 'Inter-Regular',
+  },
+  // Фон названия группы
+  subGroupBar: {
+    backgroundColor: '#191919',
+    borderTopRightRadius: 4,
+    borderBottomRightRadius: 4,
+    alignSelf: 'flex-start'
+  },
+  // Разграничитель палка подгрупп
+  subGroupLimiter: {
+    backgroundColor: '#191919',
+    width: 3,
+    flexGrow: 1,
+    marginLeft: 17,
+    borderTopLeftRadius: 4
+  },
+
+  // Текст (время) в колонке
+  containerBarText: {
+    textAlign: 'center',
+    color: '#fff',
+    fontSize: 12,
+    marginTop: 5,
+    fontFamily: 'Inter-Medium',
+    marginBottom: 5
+  },
+  // Колонка времени
+  containerBar: {
+    width: 57,
+    borderRadius: 6,
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+  },
+
+
 });
