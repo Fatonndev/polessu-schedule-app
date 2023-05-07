@@ -16,9 +16,9 @@
         "svg"
       ]
     },
-    "name": "PolessuSchedule",
+    "name": "Расписание ПолесГУ",
     "slug": "PolessuSchedule",
-    "version": "1.0.0",
+    "version": "0.1.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -57,12 +57,7 @@
       "policy": "sdkVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/a358b63c-cf7d-4132-91ee-c380cfcbbad8",
-      "codeSigningCertificate": "./certs/certificate.pem",
-      "codeSigningMetadata": {
-        "keyid": "main",
-        "alg": "rsa-v1_5-sha256"
-      }
+      "url": "https://u.expo.dev/a358b63c-cf7d-4132-91ee-c380cfcbbad8"
     }
   }
 }
