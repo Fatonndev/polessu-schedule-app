@@ -117,6 +117,11 @@ export class Schedule {
     toReactFormat(weekId, dayId) {
         const result = [];
 
+        if (dayId === 6) {
+            weekId++;
+            dayId = 0;
+        }
+
         const data = this.getWeekData(weekId);
         const day_data = data[dayId].data;
 
