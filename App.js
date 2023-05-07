@@ -54,7 +54,11 @@ export default function App() {
 
   if (first) {
     (async () => {
-      await updateData(true)
+      try {
+        await updateData(true)
+      } catch (e) {
+        console.error(e);
+      }
       setRefreshing(false);
     })()
 
@@ -64,7 +68,11 @@ export default function App() {
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
 
-    await updateData(true);
+    try {
+      await updateData(true)
+    } catch (e) {
+      console.error(e);
+    }
 
     setRefreshing(false);
   }, []);
