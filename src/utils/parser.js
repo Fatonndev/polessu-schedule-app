@@ -216,6 +216,11 @@ export class ScheduleRow {
         typeArgs.pop();
         this.name = typeArgs.join('-').trim();
 
+        if (this.name === '') {
+            this.name = this.type;
+            this.type = '';
+        }
+
         return this;
     }
 
