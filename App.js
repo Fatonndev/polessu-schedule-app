@@ -57,8 +57,10 @@ export default function App() {
       try {
         await updateData(true)
       } catch (e) {
+        setData([ ]);
         console.error(e);
       }
+
       setRefreshing(false);
     })()
 
@@ -72,6 +74,7 @@ export default function App() {
       await updateData(true)
     } catch (e) {
       console.error(e);
+      setData([ ]);
     }
 
     setRefreshing(false);
@@ -85,7 +88,11 @@ export default function App() {
   });
 
   if (!fontsLoaded) {
-    return null;
+    return (
+        <View style={styles.screen}>
+          <StatusBar style="dark" />
+        </View>
+    );
   }
 
   const getViewFromGroup = (group) => {
